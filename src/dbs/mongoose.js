@@ -1,6 +1,9 @@
 const { default: mongoose } = require("mongoose");
-const { checkConnect } = require("../helpers");
-const DB_URL = `mongodb://127.0.0.1:27017/shopDev`;
+const { checkConnect } = require("../helpers/check.connect");
+const {
+  db: { host, name, port },
+} = require("../config/config.mongodb");
+const DB_URL = `mongodb://${host}:${port}/${name}`;
 
 //singleton pattern
 
@@ -13,8 +16,7 @@ class MongoDB {
     mongoose
       .connect(DB_URL, { maxPoolSize: 100 })
       .then(() => {
-        console.log(`Connect Mongo DB`);
-        console.log(`Connection counts: ${checkConnect()}`);
+        console.log(`Connected Mongo DB: ${checkConnect()}`);
         if (1 === 1) {
           mongoose.set("debug", true);
           mongoose.set("debug", { color: true });
