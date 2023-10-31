@@ -1,8 +1,10 @@
 "use strict";
 //start network
 const app = require("./src/app");
-
-const server = app.listen(process.env.PORT || 3000, () => {
+const {
+  app: { port },
+} = require("./src/config/config.mongodb");
+const server = app.listen(port || 3000, () => {
   console.log("hello world");
 });
 

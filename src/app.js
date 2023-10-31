@@ -12,15 +12,14 @@ const app = express();
 app.use(morgan("dev"));
 app.use(helmet());
 app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 //init DB
 require("./dbs/mongoose");
 // checkOverload();
 //init routers
-app.get("/", (req, res, next) => {
-  return res.status(200).json({
-    message: "hello world",
-  });
-});
+app.use("/", require("./routers"));
+
 //handling error
 
 module.exports = app;
