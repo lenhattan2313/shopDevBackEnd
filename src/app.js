@@ -21,5 +21,20 @@ require("./dbs/mongoose");
 app.use("/", require("./routers"));
 
 //handling error
+//2 type of error: error in router and error below router like: 404
 
+//middleware
+app.use((req, res, next) => {
+  const error = new Error("Not found");
+  error.status = 404;
+  next(error);
+});
+
+app.use((err, req, res, next) => {
+  const statusCode = err.status || 500;
+  return res.status(statusCode).json({
+    code: statusCode,
+    message: err.message || "Internal server error",
+  });
+});
 module.exports = app;
