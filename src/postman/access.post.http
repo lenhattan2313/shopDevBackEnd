@@ -1,21 +1,35 @@
 @url_dev=http://localhost:3052/v1/api/
-### signUp
+### POST signUp
 POST {{url_dev}}shop/signup
 content-type: application/json
 x-api-key: 9869a157ac527cbd87a366bf459ecda41539944e417e475734224127ed304948d31684125d2836dc2504d9291a48d8e095abce72db9cbf50f549aabb785d7913
 
 {
   "name": "test",
-  "email": "test7@gmail.com",
+  "email": "test8@gmail.com",
   "password": "test"
 }
 
 
-### post login
+### POST login
 POST {{url_dev}}shop/login
 content-type: application/json
 x-api-key: 9869a157ac527cbd87a366bf459ecda41539944e417e475734224127ed304948d31684125d2836dc2504d9291a48d8e095abce72db9cbf50f549aabb785d7913
 
+{
+  "email": "test7@gmail.com",
+  "password": "test",
+  "refreshToken":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTQzMDVlM2I1YjcxNWFkNDQyOGM3ZGUiLCJlbWFpbCI6InRlc3Q3QGdtYWlsLmNvbSIsImlhdCI6MTY5ODk3Nzg1MCwiZXhwIjoxNjk5NTgyNjUwfQ.X2HxzKijbO8Jkk_n4j_o2QYKWMAV7zwn_ZdmGTqRA00"
+}
+
+
+### POST logout
+POST {{url_dev}}shop/logout
+content-type: application/json
+x-api-key: 9869a157ac527cbd87a366bf459ecda41539944e417e475734224127ed304948d31684125d2836dc2504d9291a48d8e095abce72db9cbf50f549aabb785d7913
+x-client-id: 65479899c8d63778a9d836ca
+access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2NTQ3OTg5OWM4ZDYzNzc4YTlkODM2Y2EiLCJlbWFpbCI6InRlc3Q4QGdtYWlsLmNvbSIsImlhdCI6MTY5OTE5MDkzNywiZXhwIjoxNjk5MzYzNzM3fQ.QxlfID3yQengBzujyiB3SMU1fT4Mu_Wka7opyzylDUQ
+  
 {
   "email": "test7@gmail.com",
   "password": "test",

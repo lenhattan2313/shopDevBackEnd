@@ -1,12 +1,13 @@
 "use strict";
 
+const JWT = require("jsonwebtoken");
+const { REQUEST_HEADER } = require("../constants/common.constants");
+const { AuthFailureError, NotFoundError } = require("../core/error.response");
+const { asyncHandler } = require("../helpers/asyncHandler");
 const apiKeyModel = require("../models/apiKey.model");
 const { findByKey } = require("../services/apiKey.service");
+const KeyTokenService = require("../services/keyToken.service");
 
-const REQUEST_HEADER = {
-  API_KEY: "x-api-key",
-  AUTHORIZATION: "access-token",
-};
 const apiKey = async (req, res, next) => {
   try {
     const key = req.headers[REQUEST_HEADER.API_KEY]?.toString();
@@ -50,9 +51,29 @@ const checkPermission = (permission) => {
     return next();
   };
 };
-const asyncHandler = (fn) => {
-  return (req, res, next) => {
-    fn(req, res, next).catch(next);
-  };
-};
-module.exports = { apiKey, checkPermission, asyncHandler };
+/*
+  1. check and verify userId
+  2. check and verify accessToken
+  */
+const authentication = asyncHandler(async (req, res, next) => {
+  const userId = req.headers[REQUEST_HEADER.CLIENT_ID];
+  if (!userId) throw new AuthFailureError("Invalid userId");
+
+  const token = await KeyTokenService.findByUserId(userId);
+  if (!token) throw new AuthFailureError("UserID is not exist");
+
+  const accessToken = req.headers[REQUEST_HEADER.AUTHORIZATION];
+  if (!accessToken) throw new AuthFailureError("Invalid token");
+
+  try {
+    const decodeAT = JWT.verify(accessToken, token.publicKey);
+    const userToken = decodeAT.userId;
+    if (userId !== userToken)
+      throw new NotFoundError("Access token is invalid");
+    req.keyToken = token;
+    next();
+  } catch (error) {
+    throw error;
+  }
+});
+module.exports = { apiKey, checkPermission, authentication };

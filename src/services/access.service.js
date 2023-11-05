@@ -34,12 +34,16 @@ class AccessService {
     if (!isPasswordCorrect) throw new AuthFailureError("Authenticate error");
     const userId = foundShop._id;
     //check refresh token is used or not
-    const isExistRefreshToken = await KeyTokenService.checkRefreshTokenInUsed({
-      userId,
-      refreshTokenUsed,
-    });
-    if (isExistRefreshToken)
-      throw new BadRequestError("Refresh token has already been used");
+    if (!refreshTokenUsed) {
+      const isExistRefreshToken = await KeyTokenService.checkRefreshTokenInUsed(
+        {
+          userId,
+          refreshTokenUsed,
+        }
+      );
+      if (isExistRefreshToken.length > 0)
+        throw new BadRequestError("Refresh token has already been used");
+    }
 
     const publicKey = crypto.randomBytes(64).toString("hex");
     const privateKey = crypto.randomBytes(64).toString("hex");
@@ -58,6 +62,10 @@ class AccessService {
       shop: getDataInformation(["email", "name", "_id"], foundShop),
       token,
     };
+  };
+
+  static logout = async (keyToken) => {
+    return await KeyTokenService.removeByUserId({ userId: keyToken.userId });
   };
   static signUp = async ({ name, email, password }) => {
     //check email is exist or not

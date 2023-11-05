@@ -22,6 +22,12 @@ class AccessController {
       metadata: await AccessService.login(req.body),
     }).send(res);
   };
+  logout = async (req, res, next) => {
+    console.log(`[P]::logout::`, req.keyToken.userId);
+    return new OK({
+      metadata: await AccessService.logout(req.keyToken), //get from authentication middleware
+    }).send(res);
+  };
 }
 
 module.exports = new AccessController();
