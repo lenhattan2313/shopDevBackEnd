@@ -10,8 +10,55 @@ const { getDataInformation } = require("../utils");
 const {
   ConflictRequestError,
   BadRequestError,
+  AuthFailureError,
 } = require("../core/error.response");
+const { findShopByEmail } = require("./shop.service");
+const keyTokenModel = require("../models/keyToken.model");
 class AccessService {
+  /*
+    1. check mail
+    2. check password
+    3. check refreshToken be in used
+    4. create AT and RT
+    5. generate token
+  */
+  static login = async ({
+    email,
+    password,
+    refreshToken: refreshTokenUsed = null,
+  }) => {
+    const foundShop = await findShopByEmail({ email });
+    if (!foundShop) throw new BadRequestError("Shop doesn't exist");
+
+    const isPasswordCorrect = bcrypt.compare(password, foundShop.password);
+    if (!isPasswordCorrect) throw new AuthFailureError("Authenticate error");
+    const userId = foundShop._id;
+    //check refresh token is used or not
+    const isExistRefreshToken = await KeyTokenService.checkRefreshTokenInUsed({
+      userId,
+      refreshTokenUsed,
+    });
+    if (isExistRefreshToken)
+      throw new BadRequestError("Refresh token has already been used");
+
+    const publicKey = crypto.randomBytes(64).toString("hex");
+    const privateKey = crypto.randomBytes(64).toString("hex");
+
+    const token = createTokenPair({ userId, email }, publicKey, privateKey);
+    if (!token) throw new BadRequestError("Token error");
+
+    await KeyTokenService.createKeyToken({
+      userId,
+      publicKey,
+      privateKey,
+      refreshToken: token.refreshToken,
+      refreshTokenUsed,
+    });
+    return {
+      shop: getDataInformation(["email", "name", "_id"], foundShop),
+      token,
+    };
+  };
   static signUp = async ({ name, email, password }) => {
     //check email is exist or not
     const holderShop = await shopModel.findOne({ email }).lean(); //lean return object JS
