@@ -14,6 +14,7 @@ const {
 } = require("../core/error.response");
 const { findShopByEmail } = require("./shop.service");
 const keyTokenModel = require("../models/keyToken.model");
+const JWT = require("jsonwebtoken");
 class AccessService {
   /*
     1. check mail
@@ -64,8 +65,51 @@ class AccessService {
     };
   };
 
+  //Logout
   static logout = async (keyToken) => {
     return await KeyTokenService.removeByUserId({ userId: keyToken.userId });
+  };
+
+  /*
+    check refresh token is used?
+  */
+  static handleRenewToken = async (refreshToken) => {
+    const foundToken = await KeyTokenService.findByRefreshTokenUsed(
+      refreshToken
+    );
+    if (foundToken) {
+      const { userId, email } = JWT.verify(refreshToken, foundToken.privateKey);
+      //log
+      console.log("found token is used ", { userId, email });
+      await KeyTokenService.removeByUserId({ userId });
+      throw new BadRequestError("Something is wrong, plz relogin");
+    }
+
+    //get userId from refreshToken
+    const token = await KeyTokenService.findByRefreshToken(refreshToken);
+    if (!token) throw new AuthFailureError("Shop does not register");
+
+    const { userId, email } = JWT.verify(refreshToken, token.privateKey);
+    console.log("renew refresh token ", { userId, email });
+    const foundShop = await findShopByEmail({ email });
+    if (!foundShop) throw new AuthFailureError("Shop does not register");
+
+    //create refreshToken and add to refreshTokensUsed
+
+    const newToken = createTokenPair(
+      { userId, email },
+      token.publicKey,
+      token.privateKey
+    );
+
+    await token.updateOne({
+      $set: { refreshToken: newToken.refreshToken },
+      $addToSet: {
+        refreshTokensUsed: refreshToken,
+      },
+    });
+
+    return { user: { userId, email }, token: newToken };
   };
   static signUp = async ({ name, email, password }) => {
     //check email is exist or not

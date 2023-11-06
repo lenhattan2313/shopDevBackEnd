@@ -28,6 +28,12 @@ class AccessController {
       metadata: await AccessService.logout(req.keyToken), //get from authentication middleware
     }).send(res);
   };
+  handleRenewToken = async (req, res, next) => {
+    console.log(`[P]::renew token::`);
+    return new OK({
+      metadata: await AccessService.handleRenewToken(req.body.refreshToken),
+    }).send(res);
+  };
 }
 
 module.exports = new AccessController();
