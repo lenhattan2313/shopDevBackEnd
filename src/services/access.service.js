@@ -73,43 +73,34 @@ class AccessService {
   /*
     check refresh token is used?
   */
-  static handleRenewToken = async (refreshToken) => {
-    const foundToken = await KeyTokenService.findByRefreshTokenUsed(
-      refreshToken
-    );
-    if (foundToken) {
-      const { userId, email } = JWT.verify(refreshToken, foundToken.privateKey);
-      //log
-      console.log("found token is used ", { userId, email });
+  static handleRenewToken = async ({ refreshToken, keyToken, user }) => {
+    const { userId, email } = user;
+    console.log("keyToken", keyToken);
+    if (keyToken.refreshTokensUsed.includes(refreshToken)) {
+      console.log("found token is used ", user);
       await KeyTokenService.removeByUserId({ userId });
-      throw new BadRequestError("Something is wrong, plz relogin");
+      throw new BadRequestError("Something is wrong, plz re-login");
     }
+    if (keyToken.refreshToken !== refreshToken)
+      throw new AuthFailureError("Shop does not register");
 
-    //get userId from refreshToken
-    const token = await KeyTokenService.findByRefreshToken(refreshToken);
-    if (!token) throw new AuthFailureError("Shop does not register");
-
-    const { userId, email } = JWT.verify(refreshToken, token.privateKey);
-    console.log("renew refresh token ", { userId, email });
     const foundShop = await findShopByEmail({ email });
     if (!foundShop) throw new AuthFailureError("Shop does not register");
 
-    //create refreshToken and add to refreshTokensUsed
-
-    const newToken = createTokenPair(
+    const newToken = await createTokenPair(
       { userId, email },
-      token.publicKey,
-      token.privateKey
+      keyToken.publicKey,
+      keyToken.privateKey
     );
 
-    await token.updateOne({
+    await keyToken.updateOne({
       $set: { refreshToken: newToken.refreshToken },
       $addToSet: {
         refreshTokensUsed: refreshToken,
       },
     });
 
-    return { user: { userId, email }, token: newToken };
+    return { user, token: newToken };
   };
   static signUp = async ({ name, email, password }) => {
     //check email is exist or not

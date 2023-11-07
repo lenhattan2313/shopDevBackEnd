@@ -31,7 +31,11 @@ class AccessController {
   handleRenewToken = async (req, res, next) => {
     console.log(`[P]::renew token::`);
     return new OK({
-      metadata: await AccessService.handleRenewToken(req.body.refreshToken),
+      metadata: await AccessService.handleRenewToken({
+        refreshToken: req.refreshToken,
+        user: req.user,
+        keyToken: req.keyToken,
+      }),
     }).send(res);
   };
 }
