@@ -42,7 +42,7 @@ class AccessService {
           refreshTokenUsed,
         }
       );
-      if (isExistRefreshToken.length > 0)
+      if (isExistRefreshToken && isExistRefreshToken.length > 0)
         throw new BadRequestError("Refresh token has already been used");
     }
 

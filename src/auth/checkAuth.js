@@ -61,7 +61,6 @@ const authentication = asyncHandler(async (req, res, next) => {
 
   const token = await KeyTokenService.findByUserId(userId);
   if (!token) throw new AuthFailureError("UserID is not exist");
-  console.log("Aaa", req.headers[REQUEST_HEADER.REFRESH_TOKEN]);
   if (req.headers[REQUEST_HEADER.REFRESH_TOKEN]) {
     try {
       const refreshToken = req.headers[REQUEST_HEADER.REFRESH_TOKEN];
@@ -85,6 +84,7 @@ const authentication = asyncHandler(async (req, res, next) => {
       const userToken = decodeAT.userId;
       if (userId !== userToken)
         throw new NotFoundError("Access token is invalid");
+      req.user = decodeAT;
       req.keyToken = token;
       return next();
     } catch (error) {
