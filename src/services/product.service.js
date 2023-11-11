@@ -6,9 +6,15 @@ const {
   clothingModel,
   electronicModel,
 } = require("../models/product.model");
+const {
+  findAllDraftForShopRepo,
+  publishProductByShopRepo,
+  unpublishProductByShopRepo,
+  findAllPublishForShopRepo,
+  searchProductByUserRepo,
+} = require("../models/repositories/product.repo");
 
 //create clothing first, product after
-
 class Product {
   constructor({
     product_name,
@@ -19,6 +25,8 @@ class Product {
     product_type,
     product_attribute,
     product_shop,
+    product_rateAverage,
+    product_variation,
   }) {
     this.product_name = product_name;
     this.product_description = product_description;
@@ -28,6 +36,8 @@ class Product {
     this.product_type = product_type;
     this.product_attribute = product_attribute;
     this.product_shop = product_shop;
+    this.product_rateAverage = product_rateAverage;
+    this.product_variation = product_variation;
   }
   async createProduct(product_id) {
     const product = await productModel.create({ ...this, id: product_id });
@@ -90,6 +100,39 @@ class ProductFactoryMethod {
     const product = ProductFactoryMethod.productRegister[type];
     if (!product) throw new BadRequestError("Cannot create product");
     return new product(payload).createProduct();
+  }
+
+  //Publish product
+  static async publishProductByShop({ product_shop, product_id }) {
+    return await publishProductByShopRepo({ product_shop, product_id });
+  }
+  static async unpublishProductByShop({ product_shop, product_id }) {
+    return await unpublishProductByShopRepo({ product_shop, product_id });
+  }
+  // start query ********
+  static async findAllDraftForShop({ product_shop, limit = 50, skip = 0 }) {
+    const listProduct = await findAllDraftForShopRepo({
+      product_shop,
+      limit,
+      skip,
+    });
+
+    return listProduct;
+  }
+
+  static async findAllPublishForShop({ product_shop, limit = 50, skip = 0 }) {
+    return await findAllPublishForShopRepo({
+      product_shop,
+      limit,
+      skip,
+    });
+  }
+
+  // end query ********
+
+  //search text
+  static async searchProductByUser({ keySearch }) {
+    return await searchProductByUserRepo(keySearch);
   }
 }
 
