@@ -12,6 +12,8 @@ const {
   unpublishProductByShopRepo,
   findAllPublishForShopRepo,
   searchProductByUserRepo,
+  findAllProductsRepo,
+  findProductRepo,
 } = require("../models/repositories/product.repo");
 
 //create clothing first, product after
@@ -128,6 +130,29 @@ class ProductFactoryMethod {
     });
   }
 
+  static async findAllProducts({
+    limit = 50,
+    page = 1,
+    sort = "ctime",
+    filter = { isPublished: true },
+  }) {
+    return await findAllProductsRepo({
+      limit,
+      page,
+      sort,
+      filter,
+      select: [
+        "product_name",
+        "product_description",
+        "product_price",
+        "product_quantity",
+      ],
+    });
+  }
+
+  static async findProduct(product_id) {
+    return await findProductRepo({ product_id, unSelect: ["__v"] });
+  }
   // end query ********
 
   //search text

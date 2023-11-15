@@ -1,6 +1,6 @@
 "use strict";
 
-const { convertStringToObjectId } = require("../../utils");
+const { convertStringToObjectId, getUnSelectData } = require("../../utils");
 const { productModel } = require("../product.model");
 
 const findAllDraftForShopRepo = async ({ product_shop, limit, skip }) => {
@@ -36,8 +36,8 @@ const publishProductByShopRepo = async ({ product_shop, product_id }) => {
   if (!foundProduct) return null;
   foundProduct.isDraft = false;
   foundProduct.isPublished = true;
-
-  const { modifiedCount } = await productModel.updateOne(foundProduct);
+  console.log(foundProduct);
+  const { modifiedCount } = await foundProduct.updateOne(foundProduct);
   return modifiedCount;
 };
 const unpublishProductByShopRepo = async ({ product_shop, product_id }) => {
@@ -49,7 +49,7 @@ const unpublishProductByShopRepo = async ({ product_shop, product_id }) => {
   foundProduct.isDraft = false;
   foundProduct.isPublished = false;
 
-  const { modifiedCount } = await productModel.updateOne(foundProduct);
+  const { modifiedCount } = await foundProduct.updateOne(foundProduct);
   return modifiedCount;
 };
 
@@ -64,10 +64,29 @@ const searchProductByUserRepo = async (keySearch) => {
     )
     .sort({ score: 1 });
 };
+
+const findAllProductsRepo = async ({ limit, page, sort, filter, select }) => {
+  const skip = (page - 1) * limit;
+  const sortBy = sort === "ctime" ? { _id: -1 } : { id: 1 };
+  const products = productModel
+    .find(filter)
+    .sort(sortBy)
+    .limit(limit)
+    .skip(skip)
+    .select(select)
+    .lean();
+
+  return products;
+};
+const findProductRepo = async ({ product_id, unSelect }) => {
+  return await productModel.findById(product_id).select(getUnSelectData(unSelect)).lean();
+};
 module.exports = {
   findAllDraftForShopRepo,
   publishProductByShopRepo,
   unpublishProductByShopRepo,
   findAllPublishForShopRepo,
   searchProductByUserRepo,
+  findAllProductsRepo,
+  findProductRepo,
 };

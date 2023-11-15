@@ -58,6 +58,20 @@ class ProductController {
       }),
     }).send(res);
   };
+
+  getAllProducts = async (req, res, next) => {
+    console.log(`[P]::getAllProducts::`, req.body);
+    return new OK({
+      metadata: await ProductService.findAllProducts(req.query),
+    }).send(res);
+  };
+
+  getProduct = async (req, res, next) => {
+    console.log(`[P]::getProduct::`, req.body);
+    return new OK({
+      metadata: await ProductService.findProduct(req.params.id),
+    }).send(res);
+  };
   //end query ********
 
   searchProductByUser = async (req, res, next) => {

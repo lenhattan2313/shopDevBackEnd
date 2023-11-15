@@ -5,7 +5,12 @@ const productController = require("../../controllers/product.controller");
 const { asyncHandler } = require("../../helpers/asyncHandler");
 const { authentication } = require("../../auth/checkAuth");
 const router = express.Router();
-router.get("/:keySearch", asyncHandler(productController.searchProductByUser));
+router.get(
+  "/search/:keySearch",
+  asyncHandler(productController.searchProductByUser)
+);
+router.get("", asyncHandler(productController.getAllProducts));
+router.get("/:id", asyncHandler(productController.getProduct));
 //authentication
 router.use(authentication);
 
