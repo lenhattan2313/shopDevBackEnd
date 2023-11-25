@@ -18,6 +18,19 @@ class ProductController {
       }),
     }).send(res);
   };
+  updateProduct = async (req, res, next) => {
+    console.log(`[P]::updateProduct::`, req.body);
+    return new OK({
+      metadata: await ProductService.updateProduct(
+        req.body.product_type,
+        req.params.productId,
+        {
+          ...req.body,
+          product_shop: req.user.userId,
+        }
+      ),
+    }).send(res);
+  };
   publishProductByShop = async (req, res, next) => {
     console.log(`[P]::publishProductByShop::`, req.body);
     return new OK({

@@ -14,7 +14,12 @@ const {
   searchProductByUserRepo,
   findAllProductsRepo,
   findProductRepo,
+  updateProductByIdRepo,
 } = require("../models/repositories/product.repo");
+const {
+  removeNullUndefinedObject,
+  updateNestedObjectParser,
+} = require("../utils");
 
 //create clothing first, product after
 class Product {
@@ -41,9 +46,18 @@ class Product {
     this.product_rateAverage = product_rateAverage;
     this.product_variation = product_variation;
   }
-  async createProduct(product_id) {
-    const product = await productModel.create({ ...this, id: product_id });
+  async createProduct(productId) {
+    const product = await productModel.create({ ...this, id: productId });
     if (!product) throw new BadRequestError("Cannot create product");
+    return product;
+  }
+  async updateProduct(productId, payload) {
+    const objectParser = updateNestedObjectParser(payload);
+    const product = await updateProductByIdRepo({
+      product_id: productId,
+      payload: objectParser,
+      model: productModel,
+    });
     return product;
   }
 }
@@ -59,6 +73,22 @@ class Clothing extends Product {
     const product = await super.createProduct(clothing._id);
     return product;
   }
+
+  async updateProduct(productId) {
+    /*
+      1. remove null and undefined
+      2. parse object to update
+    */
+    if (this.product_attribute) {
+      await updateProductByIdRepo({
+        product_id: productId,
+        payload: updateNestedObjectParser(this.product_attribute),
+        model: clothingModel,
+      });
+    }
+    const product = await super.updateProduct(productId, this);
+    return product;
+  }
 }
 class Electronic extends Product {
   async createProduct() {
@@ -66,9 +96,9 @@ class Electronic extends Product {
       ...this.product_attribute,
       product_shop: this.product_shop,
     });
-    if (!clothing) throw new BadRequestError("Cannot create electronic");
+    if (!electronic) throw new BadRequestError("Cannot create electronic");
 
-    const product = await super.createProduct(clothing._id);
+    const product = await super.createProduct(electronic._id);
     return product;
   }
 }
@@ -94,16 +124,15 @@ class ProductFactoryMethod {
     ProductFactoryMethod.productRegister[type] = productClass;
   };
   static createProduct(type, payload) {
-    //subscribe class
-    for (const [key, value] of Object.entries(configClass)) {
-      ProductFactoryMethod.registerProductClass(key, value);
-    }
-
     const product = ProductFactoryMethod.productRegister[type];
     if (!product) throw new BadRequestError("Cannot create product");
     return new product(payload).createProduct();
   }
-
+  static updateProduct(type, productId, payload) {
+    const product = ProductFactoryMethod.productRegister[type];
+    if (!product) throw new BadRequestError("Cannot create product");
+    return new product(payload).updateProduct(productId);
+  }
   //Publish product
   static async publishProductByShop({ product_shop, product_id }) {
     return await publishProductByShopRepo({ product_shop, product_id });
@@ -159,6 +188,10 @@ class ProductFactoryMethod {
   static async searchProductByUser({ keySearch }) {
     return await searchProductByUserRepo(keySearch);
   }
+}
+//subscribe class
+for (const [key, value] of Object.entries(configClass)) {
+  ProductFactoryMethod.registerProductClass(key, value);
 }
 
 module.exports = ProductFactoryMethod;
