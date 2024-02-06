@@ -15,7 +15,8 @@ services:
     build: .
     volumes:
       - .:/usr/src/app
-      - node_modules:/usr/src/app/node_modules
+      - /usr/src/app/node_modules
+      # - node_modules:/usr/src/app/node_modules
     ports:
       - 3052:3052
     env_file:
@@ -24,4 +25,4 @@ services:
       - mongo_db
 volumes:
   mongo_db: {}
-  node_modules:
+  # node_modules:

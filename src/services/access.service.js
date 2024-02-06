@@ -30,8 +30,10 @@ class AccessService {
   }) => {
     const foundShop = await findShopByEmail({ email });
     if (!foundShop) throw new BadRequestError("Shop doesn't exist");
-
-    const isPasswordCorrect = bcrypt.compare(password, foundShop.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      foundShop.password
+    );
     if (!isPasswordCorrect) throw new AuthFailureError("Authenticate error");
     const userId = foundShop._id;
     //check refresh token is used or not
@@ -76,7 +78,7 @@ class AccessService {
   static handleRenewToken = async ({ refreshToken, keyToken, user }) => {
     const { userId, email } = user;
     console.log("keyToken", keyToken);
-    if (keyToken.refreshTokensUsed.includes(refreshToken)) {
+    if (keyToken.refreshTokensUsed?.includes(refreshToken)) {
       console.log("found token is used ", user);
       await KeyTokenService.removeByUserId({ userId });
       throw new BadRequestError("Something is wrong, plz re-login");

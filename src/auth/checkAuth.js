@@ -2,7 +2,11 @@
 
 const JWT = require("jsonwebtoken");
 const { REQUEST_HEADER } = require("../constants/common.constants");
-const { AuthFailureError, NotFoundError } = require("../core/error.response");
+const {
+  AuthFailureError,
+  NotFoundError,
+  BadRequestError,
+} = require("../core/error.response");
 const { asyncHandler } = require("../helpers/asyncHandler");
 const apiKeyModel = require("../models/apiKey.model");
 const { findByKey } = require("../services/apiKey.service");
@@ -88,7 +92,13 @@ const authentication = asyncHandler(async (req, res, next) => {
       req.keyToken = token;
       return next();
     } catch (error) {
-      throw error;
+      if (error.name === "TokenExpiredError") {
+        // JWT expired
+        throw new AuthFailureError("Token expired");
+      } else {
+        // Other JWT verification errors
+        throw error;
+      }
     }
   }
 });
