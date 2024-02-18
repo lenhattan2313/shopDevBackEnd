@@ -160,11 +160,8 @@ class AccessService {
         throw new BadRequestError("token error");
       }
       return {
-        code: "201",
-        metadata: {
-          shop: getDataInformation(["email", "name", "_id"], shop),
-          token,
-        },
+        shop: getDataInformation(["email", "name", "_id"], shop),
+        token,
       };
     }
   };
